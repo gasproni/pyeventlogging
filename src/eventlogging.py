@@ -1,0 +1,83 @@
+import datetime
+import json
+import sys
+import threading
+import traceback
+from abc import ABC, abstractmethod
+from typing import TextIO, Any, Callable
+from uuid import uuid1
+
+
+class Clock(ABC):
+    """Superclass for clock types used by the EventLogger"""
+
+    @abstractmethod
+    def now(self, tz: datetime.timezone = datetime.timezone.utc) -> datetime.datetime:
+        """Returns the current datetime"""
+        pass
+
+
+class SystemClock(Clock):
+    def now(self, tz: datetime.timezone = datetime.timezone.utc) -> datetime.datetime:
+        return datetime.datetime.now(tz=tz)
+
+
+def extract_stacktrace(exception: Exception) -> str:
+    return "".join(traceback.TracebackException.from_exception(exception).format())
+
+
+class JSONEncoder(json.JSONEncoder):
+    """Encoder used to translate datetime to iso strings,
+    and exceptions into their stack traces."""
+
+    def default(self, obj: Any) -> Any:
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        elif isinstance(obj, Exception):
+            return extract_stacktrace(obj)
+        return json.JSONEncoder.default(self, obj)
+
+
+class CorrelationID:
+
+    class LocalWithValueField(threading.local):
+        def __init__(self):
+            self.value = None
+
+    def __init__(self, generate_id: Callable[[], str] = lambda: str(uuid1())):
+        self.generate_id = generate_id
+        self.correlation_id = CorrelationID.LocalWithValueField()
+
+    def set(self, value: str or None) -> None:
+        self.correlation_id.value = value if value else self.generate_id()
+
+    def get(self) -> str:
+        return self.correlation_id.value
+
+    def reset(self) -> None:
+        self.correlation_id.value = None
+
+class Event(ABC):
+    """Superclass for all log event types."""
+
+    def type(self):
+        return self.__class__.__name__
+
+
+class TextStreamEventLogger:
+
+    def __init__(self, correlation_id: CorrelationID = None, clock: Clock = SystemClock(),
+                 output: TextIO = sys.stdout):
+        self.correlation_id = correlation_id
+        self.__clock = clock
+        self.__output = output
+
+    def log(self, event: Event) -> None:
+        metadata = {"timestamp": self.__clock.now(),
+                    "type": event.type()}
+        if self.correlation_id:
+            metadata.update({"correlation_id": self.correlation_id.get()})
+        event_json = {"metadata": metadata,
+                      "event": vars(event)}
+
+        print(json.dumps(event_json, cls=JSONEncoder), file=self.__output)

@@ -39,7 +39,6 @@ class JSONEncoder(json.JSONEncoder):
 
 
 class CorrelationID:
-
     class LocalWithValueField(threading.local):
         def __init__(self):
             self.value = None
@@ -56,6 +55,7 @@ class CorrelationID:
 
     def reset(self) -> None:
         self.correlation_id.value = None
+
 
 class Event(ABC):
     """Superclass for all log event types."""

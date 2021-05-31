@@ -35,7 +35,7 @@ def make_exception_with_stack_trace() -> Exception:
     except Exception:
         try:
             raise Exception("second")
-        except:
+        except Exception:
             try:
                 raise Exception("third")
             except Exception as e:

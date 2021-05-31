@@ -49,7 +49,7 @@ class CorrelationID:
         self.correlation_id = CorrelationID.LocalWithValueField()
 
     def set(self, value: str or None) -> None:
-        self.correlation_id.value = value if value else self.generate_id()
+        self.correlation_id.value = value or self.generate_id()
 
     def get(self) -> str:
         return self.correlation_id.value

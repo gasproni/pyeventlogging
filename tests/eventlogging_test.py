@@ -49,9 +49,9 @@ def extract_stacktrace(exception: Exception) -> str:
 class TextStreamEventLoggerTest(unittest.TestCase):
 
     def setUp(self):
-        self.event_stream = io.StringIO()
+        self.text_stream = io.StringIO()
         self.clock = TestClock()
-        self.event_logger = eventlogging.TextStreamEventLogger(clock=self.clock, output=self.event_stream)
+        self.event_logger = eventlogging.TextStreamEventLogger(clock=self.clock, output=self.text_stream)
 
     def test_logged_event_string_ends_with_newline(self):
         class TestEvent(eventlogging.Event):
@@ -61,7 +61,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
         event = TestEvent("value")
         self.event_logger.log(event)
 
-        created_json = read_text(self.event_stream)
+        created_json = read_text(self.text_stream)
 
         self.assertEqual(created_json[-1], "\n")
 
@@ -146,7 +146,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
         """
 
         self.event_logger = eventlogging.TextStreamEventLogger(correlation_id=correlation_id, clock=self.clock,
-                                                               output=self.event_stream)
+                                                               output=self.text_stream)
 
         correlation_id.set(expected_correlation_id_value)
         self.event_logger.log(event)
@@ -171,14 +171,14 @@ class TextStreamEventLoggerTest(unittest.TestCase):
         """
 
         self.event_logger = eventlogging.TextStreamEventLogger(correlation_id=correlation_id, clock=self.clock,
-                                                               output=self.event_stream)
+                                                               output=self.text_stream)
 
         self.event_logger.log(event)
 
         self.assertLoggedEventEquals(expected_json)
 
     def assertLoggedEventEquals(self, expected_json: str) -> None:
-        created_json = read_text(self.event_stream)
+        created_json = read_text(self.text_stream)
         self.assertEqual(json.loads(expected_json), json.loads(created_json))
 
 

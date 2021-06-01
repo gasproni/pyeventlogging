@@ -110,8 +110,8 @@ class TextStreamEventLoggerTest(unittest.TestCase):
 
     def test_logs_datetime_in_iso_format(self):
         class TestEvent(eventlogging.Event):
-            def __init__(self, timestamp: datetime):
-                self.timestamp = timestamp
+            def __init__(self, ev_timestamp: datetime):
+                self.ev_timestamp = ev_timestamp
 
         timestamp = datetime.now()
         event = TestEvent(timestamp)
@@ -119,7 +119,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
         expected_json = f""" {{"metadata": {{"timestamp": "{self.clock.datetime.isoformat()}", 
                                              "type": "{event.type()}"
                                            }}, 
-                               "event": {{"timestamp": "{timestamp.isoformat()}"}}
+                               "event": {{"ev_timestamp": "{timestamp.isoformat()}"}}
                               }}
         """
 
@@ -182,6 +182,12 @@ class TextStreamEventLoggerTest(unittest.TestCase):
         self.assertEqual(json.loads(expected_json), json.loads(created_json))
 
 
+def execute_in_other_thread_and_join(func: Callable[[List], None], func_result_holder: List) -> None:
+    other_thread = threading.Thread(target=func, args=[func_result_holder])
+    other_thread.start()
+    other_thread.join()
+
+
 class CorrelationIDTest(unittest.TestCase):
 
     def setUp(self):
@@ -235,7 +241,7 @@ class CorrelationIDTest(unittest.TestCase):
             result.append(self.correlation_id.get())
 
         func_result = []
-        self.execute_in_other_thread(func, func_result)
+        execute_in_other_thread_and_join(func, func_result)
         self.assertEqual(func_result[0], correlation_id_value)
 
     def assertReturnsNoneInOtherThread(self):
@@ -243,7 +249,7 @@ class CorrelationIDTest(unittest.TestCase):
             result.append(self.correlation_id.get())
 
         func_result = []
-        self.execute_in_other_thread(func, func_result)
+        execute_in_other_thread_and_join(func, func_result)
         self.assertIsNone(func_result[0])
 
     def reset_in_other_thread(self):
@@ -252,13 +258,8 @@ class CorrelationIDTest(unittest.TestCase):
             result.append(self.correlation_id.get())
 
         func_result = []
-        self.execute_in_other_thread(func, func_result)
+        execute_in_other_thread_and_join(func, func_result)
         self.assertIsNone(func_result[0])
-
-    def execute_in_other_thread(self, func: Callable[[List], None], func_result_holder: List) -> None:
-        other_thread = threading.Thread(target=func, args=[func_result_holder])
-        other_thread.start()
-        other_thread.join()
 
 
 if __name__ == "__main__":

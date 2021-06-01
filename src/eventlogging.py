@@ -74,7 +74,6 @@ class EventLogger(ABC):
                     "type": event.type()}
         if self.correlation_id:
             metadata.update({"correlation_id": self.correlation_id.get()})
-
         return {"metadata": metadata,
                 "event": vars(event)}
 

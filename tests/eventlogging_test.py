@@ -30,14 +30,17 @@ def read_text(output: TextIO) -> str:
 
 
 def make_exception_with_stack_trace() -> Exception:
+    class TestException(Exception):
+        def __init__(self, message):
+            super(TestException, self).__init__(message)
     try:
-        raise Exception("first")
+        raise TestException("first")
     except Exception:
         try:
-            raise Exception("second")
+            raise TestException("second")
         except Exception:
             try:
-                raise Exception("third")
+                raise TestException("third")
             except Exception as e:
                 return e
 

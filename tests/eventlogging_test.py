@@ -62,7 +62,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
                 self.value = value
 
         event = TestEvent("value")
-        self.event_logger.log(event)
+        self.event_logger(event)
 
         created_json = read_text(self.text_stream)
 
@@ -87,7 +87,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
                                           "value_bool": {str(event.value_bool).lower()} }}
                               }}
         """
-        self.event_logger.log(event)
+        self.event_logger(event)
 
         self.assertLoggedEventEquals(expected_json)
 
@@ -107,7 +107,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
                               }}
         """
 
-        self.event_logger.log(event)
+        self.event_logger(event)
 
         self.assertLoggedEventEquals(expected_json)
 
@@ -126,7 +126,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
                               }}
         """
 
-        self.event_logger.log(event)
+        self.event_logger(event)
 
         self.assertLoggedEventEquals(expected_json)
 
@@ -152,7 +152,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
                                                                output=self.text_stream)
 
         correlation_id.set(expected_correlation_id_value)
-        self.event_logger.log(event)
+        self.event_logger(event)
 
         self.assertLoggedEventEquals(expected_json)
 
@@ -176,7 +176,7 @@ class TextStreamEventLoggerTest(unittest.TestCase):
         self.event_logger = eventlogging.TextStreamEventLogger(correlation_id=correlation_id, clock=self.clock,
                                                                output=self.text_stream)
 
-        self.event_logger.log(event)
+        self.event_logger(event)
 
         self.assertLoggedEventEquals(expected_json)
 

@@ -4,7 +4,7 @@ import sys
 import threading
 import traceback
 from abc import ABC, abstractmethod
-from typing import TextIO, Any, Callable, Dict
+from typing import TextIO, Any, Callable
 from uuid import uuid1
 
 
@@ -64,30 +64,24 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-class EventLogger(ABC):
-    def __init__(self, correlation_id: CorrelationID, clock: Clock):
-        self.correlation_id = correlation_id
-        self.__clock = clock
-
-    def asJson(self, event: Event) -> Dict:
-        metadata = {"timestamp": self.__clock.now(),
-                    "type": event.type()}
-        if self.correlation_id:
-            metadata.update({"correlation_id": self.correlation_id.get()})
-        return {"metadata": metadata,
-                "event": vars(event)}
-
-    @abstractmethod
-    def log(self, event: Event) -> None:
-        pass
+EventLogger = Callable[[Event], None]
 
 
 class TextStreamEventLogger(EventLogger):
 
     def __init__(self, correlation_id: CorrelationID = None,
                  clock: Clock = SystemClock(), output: TextIO = sys.stdout):
-        super().__init__(correlation_id, clock)
+        super().__init__()
+        self.correlation_id = correlation_id
+        self.__clock = clock
         self.__output = output
 
-    def log(self, event: Event) -> None:
-        print(json.dumps(self.asJson(event), cls=JSONEncoder), file=self.__output)
+    def __call__(self, event: Event) -> None:
+        metadata = {"timestamp": self.__clock.now(),
+                    "type": event.type()}
+        if self.correlation_id:
+            metadata.update({"correlation_id": self.correlation_id.get()})
+        print(json.dumps({"metadata": metadata,
+                          "event": vars(event)},
+                         cls=JSONEncoder),
+              file=self.__output)

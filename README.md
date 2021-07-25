@@ -57,8 +57,9 @@ the corresponding log entry will be
 
 The framework currently supports the following types for event fields:
  
-  * All numeric types
-  * `str`
-  * `bool`
-  * `datetime.datetime` (rendered as an ISO time string)
+  * All numeric types.
+  * `str`.
+  * `bool`.
+  * `datetime.datetime` (rendered as an ISO time string).
   * `Exception` and its subclasses. Exceptions will be transformed in a string containing the entire stack trace.
+  * Lists, tuples, and dictionaries with items (and keys, in case of dictionaries) of the types above.

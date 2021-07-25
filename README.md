@@ -22,7 +22,7 @@ class PaymentMade(Event):
 
 ```
 
-creates an event of type `PaymentMade` with two fields `paidAt` and `paidBy`.
+creates an event of type `PaymentMade` with two fields `paid_at` and `paid_by`.
 If we use an instance of `TextStreamEventLogger` to log an instance of that event, e.g.: 
 
 ```python
